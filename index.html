@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eye Focus - Boutique Optical Shop Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts & Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js for premium analytics graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- 1. LOGIN SCREEN CONTAINER -->
+    <div id="login-screen" class="login-container">
+        <div class="login-left">
+            <div class="login-branding">
+                <div class="logo-icon"><i data-lucide="eye"></i></div>
+                <h2 style="font-family: var(--font-heading); font-weight: 800; letter-spacing: 0.5px;">Eye Focus</h2>
+            </div>
+            <div class="login-tagline">
+                <h1 id="lbl-tagline">แว่นตาระดับลักชัวรีสำหรับคลินิกพรีเมียม</h1>
+                <p id="lbl-login-desc">ระบบการจัดการร้านแว่นตาระดับลักชัวรีที่สมบูรณ์แบบที่สุด ครอบคลุมงานขาย ตรวจวัดสายตา คลังสินค้า แล็บ และรายงานวิเคราะห์แบบเรียลไทม์</p>
+            </div>
+            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.4);">
+                &copy; 2026 OptiCare Business Inc. All rights reserved.
+            </div>
+        </div>
+        <div class="login-right">
+            <div class="glass-card login-form-card fade-in">
+                <div class="login-header">
+                    <h2 id="lbl-login-title">เข้าสู่ระบบ</h2>
+                    <p id="lbl-login-subtitle" style="color: var(--text-muted); font-size: 0.95rem;">ยินดีต้อนรับกลับสู่ OptiCare - กรุณาเข้าสู่ระบบ</p>
+                </div>
+                <form id="login-form" onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <label for="login-email" id="lbl-email">อีเมล</label>
+                        <input type="email" id="login-email" class="input-control" placeholder="admin@opticare.com" required value="admin@opticare.com">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 2rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                            <label for="login-password" id="lbl-password" style="margin:0;">รหัสผ่าน</label>
+                            <a href="#" onclick="showForgotPasswordModal(event)" id="lbl-forgot-link" style="font-size:0.85rem; color:var(--primary); text-decoration:none;">ลืมรหัสผ่าน?</a>
+                        </div>
+                        <input type="password" id="login-password" class="input-control" placeholder="••••••••" required value="123456">
+                    </div>
+                    <button type="submit" class="btn-premium" style="width: 100%; justify-content: center; padding: 0.9rem;">
+                        <span id="lbl-login-btn">เข้าสู่ระบบ</span> <i data-lucide="arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MAIN APP CONTAINER -->
+    <div id="main-app" class="app-container" style="display: none;">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo-container" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.08); width:100%;">
+                <div class="logo-brand" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div class="logo-icon"><i data-lucide="eye"></i></div>
+                    <span class="logo-text" style="font-family:var(--font-heading); font-weight:800; font-size:1.25rem; letter-spacing:0.5px; color:white;">Eye Focus</span>
+                </div>
+                <button class="btn-icon sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()" style="background:transparent; border:none; color:rgba(255,255,255,0.6); cursor:pointer; padding:6px; display:flex; align-items:center; justify-content:center; transition:color 0.2s;">
+                    <i data-lucide="chevron-left" id="sidebar-toggle-icon" style="width:18px; height:18px;"></i>
+                </button>
+            </div>
+
+            <!-- Branch Selector -->
+            <div class="branch-selector-wrapper">
+                <label id="lbl-select-branch" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 0.5rem; display: block; letter-spacing: 0.5px;">เลือกสาขา</label>
+                <select id="branch-select" class="branch-select" onchange="changeBranch(this.value)">
+                    <!-- Loaded dynamically -->
+                </select>
+            </div>
+
+            <!-- Nav Links -->
+            <nav class="nav-links">
+                <div class="menu-group-header" id="grp-core">สถิติและภาพรวม</div>
+                <div class="nav-item active" id="menu-dashboard" onclick="navigate('dashboard')">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span id="lbl-menu-dashboard">แดชบอร์ด</span>
+                </div>
+                <div class="nav-item" id="menu-reports" onclick="navigate('reports')">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span id="lbl-menu-reports">รายงาน</span>
+                </div>
+
+                <div class="menu-group-header" id="grp-services">บริการและลูกค้า</div>
+                <div class="nav-item" id="menu-pos" onclick="navigate('pos')">
+                    <i data-lucide="shopping-cart"></i>
+                    <span id="lbl-menu-pos">จุดขาย (POS)</span>
+                </div>
+                <div class="nav-item" id="menu-appointments" onclick="navigate('appointments')">
+                    <i data-lucide="calendar"></i>
+                    <span id="lbl-menu-appointments">นัดหมาย</span>
+                </div>
+                <div class="nav-item" id="menu-customers" onclick="navigate('customers')">
+                    <i data-lucide="users"></i>
+                    <span id="lbl-menu-customers">ลูกค้า</span>
+                </div>
+
+                <div class="menu-group-header" id="grp-management">การจัดการหลังบ้าน</div>
+                <div class="nav-item" id="menu-inventory" onclick="navigate('inventory')">
+                    <i data-lucide="box"></i>
+                    <span id="lbl-menu-inventory">คลังสินค้า</span>
+                </div>
+                <div class="nav-item" id="menu-users" onclick="navigate('users')">
+                    <i data-lucide="user-check"></i>
+                    <span id="lbl-menu-users">พนักงาน</span>
+                </div>
+                <div class="nav-item" id="menu-settings" onclick="navigate('settings')">
+                    <i data-lucide="settings"></i>
+                    <span id="lbl-menu-settings">ตั้งค่าระบบ</span>
+                </div>
+            </nav>
+
+            <!-- Sidebar Footer (Staff User info) -->
+            <div class="sidebar-footer">
+                <div class="user-avatar" id="user-avatar-initials">AD</div>
+                <div class="user-info">
+                    <span class="user-name" id="user-display-name">Somchai</span>
+                    <span class="user-role" id="user-display-role">Admin</span>
+                </div>
+                <button class="btn-icon" onclick="handleLogout()" style="margin-left: auto; width: 34px; height: 34px; background: rgba(255,255,255,0.06); border: none; color: white;">
+                    <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT WRAPPER -->
+        <main class="main-wrapper">
+            <!-- Navbar Header -->
+            <header class="navbar">
+                <div class="page-title-container">
+                    <h2 id="active-page-title">แดชบอร์ด (Dashboard)</h2>
+                </div>
+                <div class="navbar-actions">
+                    <!-- Theme Toggle -->
+                    <button class="btn-icon" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+                        <i data-lucide="moon" id="theme-icon"></i>
+                    </button>
+                    <!-- Language Toggle -->
+                    <button class="btn-icon lang-toggle" onclick="toggleLanguage()" id="lang-toggle-btn">
+                        EN
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Dynamic Page Body -->
+            <div id="page-content" class="content-body">
+                <!-- Loaded dynamically by app.js -->
+            </div>
+        </main>
+
+    </div>
+
+    <!-- MODAL OVERLAY CONTEXTS -->
+    <div id="modal-container" class="modal-overlay">
+        <!-- Inside loaded dynamically depending on modal state -->
+    </div>
+
+    <!-- Global Translations Database -->
+    <script src="translations.js"></script>
+    <!-- Main Application Engine -->
+    <script src="app.js"></script>
+</body>
+</html>
