@@ -307,6 +307,17 @@ function navigate(pageId, extraParam = null) {
         activeCustomerSubTab = "exam";
     }
     
+    // Auto collapse sidebar on mobile after navigating
+    if (window.innerWidth <= 1024) {
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar && !sidebar.classList.contains('collapsed')) {
+            sidebar.classList.add('collapsed');
+            const iconEl = document.getElementById('sidebar-toggle-icon');
+            if (iconEl) iconEl.setAttribute('data-lucide', 'chevron-right');
+            lucide.createIcons();
+        }
+    }
+    
     // Update active class in sidebar
     document.querySelectorAll(".nav-item").forEach(item => {
         item.classList.remove("active");
@@ -1972,7 +1983,9 @@ async function renderAppointments(container) {
         container.innerHTML = `
             <div class="fade-in">
                 ${toolbarHTML}
-                ${calendarBodyHTML}
+                <div class="calendar-wrapper">
+                    ${calendarBodyHTML}
+                </div>
             </div>
         `;
         lucide.createIcons();
@@ -2120,8 +2133,37 @@ function viewAppointmentDetail(a) {
 }
 
 // --- PAGE 8: USERS & PERMISSIONS ---
+let usersPage = 1;
+let usersPerPage = 20;
+let auditPage = 1;
+let auditPerPage = 20;
+
 function switchUsersTab(tab) {
     state.activeUsersTab = tab;
+    usersPage = 1;
+    auditPage = 1;
+    renderCurrentPage();
+}
+
+function changeUsersPerPage(val) {
+    usersPerPage = parseInt(val);
+    usersPage = 1;
+    renderCurrentPage();
+}
+
+function changeUsersPage(dir) {
+    usersPage += dir;
+    renderCurrentPage();
+}
+
+function changeAuditPerPage(val) {
+    auditPerPage = parseInt(val);
+    auditPage = 1;
+    renderCurrentPage();
+}
+
+function changeAuditPage(dir) {
+    auditPage += dir;
     renderCurrentPage();
 }
 
@@ -2133,6 +2175,69 @@ function getAuditBadgeClass(action) {
     return "badge-info";
 }
 
+async function toggleUserStatus(id) {
+    if (!state.usersList) return;
+    const u = state.usersList.find(x => x.id === id);
+    if (!u) return;
+    const newStatus = u.status === 'active' ? 'inactive' : 'active';
+    
+    // Check if the user is toggling their own status
+    if (state.user && u.id === state.user.id) {
+        alert(t("user_toggle_self_err") || "You cannot deactivate your own account!");
+        return;
+    }
+    
+    try {
+        const res = await fetch(`${API_BASE}/users/${id}/permissions`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                role: u.role,
+                permissions: u.permissions,
+                username: u.username,
+                branch_id: u.branch_id,
+                phone: u.phone || '',
+                status: newStatus,
+                password: u.password || ''
+            })
+        });
+        if (res.ok) {
+            renderCurrentPage();
+        } else {
+            const err = await res.json();
+            alert("Failed to toggle status: " + (err.detail || res.statusText));
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Failed to toggle status due to network error.");
+    }
+}
+
+function showPermissionsPopup(username, perms) {
+    const modal = document.getElementById("modal-container");
+    modal.classList.add("active");
+    
+    modal.innerHTML = `
+        <div class="modal-content fade-in" style="max-width: 320px; padding: 1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">
+                <h4 style="margin:0; font-family:var(--font-heading); color:var(--primary); font-size:1.1rem; display:flex; align-items:center; gap:0.5rem;">
+                    <i data-lucide="shield-check"></i> ${username}
+                </h4>
+                <button class="btn-qty" onclick="closeModal()" style="border:none; background:transparent; cursor:pointer;"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                ${perms.length === 0 ? `<span style="color:var(--text-muted); font-size:0.9rem; text-align:center;">No permissions assigned</span>` : perms.map(p => `
+                    <div style="display:flex; align-items:center; gap:0.5rem; background:rgba(0, 82, 255, 0.05); padding:0.5rem 0.75rem; border-radius:8px; font-weight:600; font-size:0.9rem; color:var(--text-main);">
+                        <span style="width:6px; height:6px; border-radius:50%; background:var(--secondary);"></span>
+                        ${p}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    lucide.createIcons();
+}
+
 async function renderUsers(container) {
     try {
         if (!state.activeUsersTab) state.activeUsersTab = "directory";
@@ -2140,6 +2245,33 @@ async function renderUsers(container) {
         if (state.activeUsersTab === "directory") {
             const res = await fetch(`${API_BASE}/users`);
             const data = await res.json();
+            state.usersList = data;
+            
+            // Apply sorting
+            data.sort((a, b) => {
+                const s = sorts.users;
+                let valA = a[s.field] || "";
+                let valB = b[s.field] || "";
+                
+                if (typeof valA === "number" && typeof valB === "number") {
+                    return s.asc ? valA - valB : valB - valA;
+                }
+                valA = String(valA).toLowerCase();
+                valB = String(valB).toLowerCase();
+                if (valA < valB) return s.asc ? -1 : 1;
+                if (valA > valB) return s.asc ? 1 : -1;
+                return 0;
+            });
+            
+            // Pagination calculations
+            const totalItems = data.length;
+            const totalPages = Math.ceil(totalItems / usersPerPage) || 1;
+            if (usersPage > totalPages) {
+                usersPage = totalPages;
+            }
+            const startIndex = (usersPage - 1) * usersPerPage;
+            const endIndex = startIndex + usersPerPage;
+            const pageData = data.slice(startIndex, endIndex);
             
             container.innerHTML = `
                 <div class="fade-in">
@@ -2170,25 +2302,25 @@ async function renderUsers(container) {
                             <table class="custom-table">
                                 <thead>
                                     <tr>
-                                        <th>${t("user_table_name")}</th>
-                                        <th>${t("user_table_email")}</th>
-                                        <th>${t("user_lbl_phone")}</th>
-                                        <th>${t("user_table_role")}</th>
-                                        <th>${t("user_table_branch")}</th>
-                                        <th>${t("user_lbl_status")}</th>
+                                        <th class="sortable" onclick="handleSort('users', 'username')">${t("user_table_name")} ${getSortIcon('users', 'username')}</th>
+                                        <th class="sortable" onclick="handleSort('users', 'email')">${t("user_table_email")} ${getSortIcon('users', 'email')}</th>
+                                        <th class="sortable" onclick="handleSort('users', 'phone')">${t("user_lbl_phone")} ${getSortIcon('users', 'phone')}</th>
+                                        <th class="sortable" onclick="handleSort('users', 'role')">${t("user_table_role")} ${getSortIcon('users', 'role')}</th>
+                                        <th class="sortable" onclick="handleSort('users', 'branch_name')">${t("user_table_branch")} ${getSortIcon('users', 'branch_name')}</th>
+                                        <th class="sortable" onclick="handleSort('users', 'status')">${t("user_lbl_status")} ${getSortIcon('users', 'status')}</th>
                                         <th>${t("user_table_perms")}</th>
                                         <th>${t("cust_actions")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${data.map(u => {
+                                    ${pageData.length === 0 ? `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:2rem;">No staff found</td></tr>` : pageData.map(u => {
                                         const activePerms = Object.keys(u.permissions).filter(k => u.permissions[k]).map(k => t('menu_' + k));
                                         const isSelf = state.user && u.id === state.user.id;
                                         
                                         return `
                                             <tr>
                                                 <td style="font-weight:600;">${u.username}</td>
-                                                <td>${u.email}</td>
+                                                <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${u.email}">${u.email}</td>
                                                 <td>${u.phone || '-'}</td>
                                                 <td style="font-weight:600; color:var(--secondary); text-transform:capitalize;">${t('user_role_' + u.role)}</td>
                                                 <td>${u.branch_name || '-'}</td>
@@ -2196,20 +2328,23 @@ async function renderUsers(container) {
                                                     <span class="badge ${u.status === 'active' ? 'badge-success' : 'badge-danger'}">${t('user_status_' + u.status)}</span>
                                                 </td>
                                                 <td>
-                                                    <div style="display:flex; flex-wrap:wrap; gap:0.25rem;">
-                                                        ${activePerms.map(p => `<span class="badge badge-info" style="font-size:0.65rem;">${p}</span>`).join('')}
-                                                    </div>
+                                                    <span class="badge badge-info" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem;" onclick="showPermissionsPopup('${u.username}', ${JSON.stringify(activePerms).replace(/"/g, '&quot;')})" title="${state.lang === 'th' ? 'คลิกเพื่อดูสิทธิ์ทั้งหมด' : 'Click to view all permissions'}">
+                                                        <i data-lucide="shield-check" style="width:12px; height:12px;"></i> ${activePerms.length} ${state.lang === 'th' ? 'เมนู' : 'Menus'}
+                                                    </span>
                                                 </td>
                                                 <td>
                                                     <div style="display:flex; gap:0.35rem;">
-                                                        <button class="btn-premium" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="showEditPermissionsModal(${u.id}, '${u.username}', '${u.role}', ${JSON.stringify(u.permissions).replace(/"/g, '&quot;')}, ${u.branch_id}, '${u.phone || ''}', '${u.status || 'active'}')">
-                                                            <i data-lucide="shield-alert" style="width:14px; height:14px; vertical-align:middle; margin-right:0.25rem;"></i> ${t("user_edit_perms")}
+                                                        <button class="btn-premium" style="padding:0.4rem; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center;" onclick="showEditPermissionsModal(${u.id}, '${u.username}', '${u.role}', ${JSON.stringify(u.permissions).replace(/"/g, '&quot;')}, ${u.branch_id}, '${u.phone || ''}', '${u.status || 'active'}')" title="${t("user_edit_perms")}">
+                                                            <i data-lucide="shield-alert" style="width:14px; height:14px;"></i>
                                                         </button>
-                                                        <button class="btn-secondary" style="padding:0.4rem 0.8rem; font-size:0.8rem; border-color:var(--secondary); color:var(--secondary);" onclick="showChangePasswordModal(${u.id}, '${u.username}')" title="${t("change_pw_title")}">
-                                                            <i data-lucide="key" style="width:14px; height:14px; vertical-align:middle;"></i>
+                                                        <button class="btn-secondary" style="padding:0.4rem; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-color:${u.status === 'active' ? 'var(--danger)' : 'var(--success)'}; color:${u.status === 'active' ? 'var(--danger)' : 'var(--success)'}; ${isSelf ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isSelf ? 'disabled' : `onclick="toggleUserStatus(${u.id})"`} title="${u.status === 'active' ? 'Lock Account' : 'Unlock Account'}">
+                                                            <i data-lucide="${u.status === 'active' ? 'lock' : 'unlock'}" style="width:14px; height:14px;"></i>
                                                         </button>
-                                                        <button class="btn-secondary" style="padding:0.4rem 0.8rem; font-size:0.8rem; border-color:var(--danger); color:var(--danger); ${isSelf ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isSelf ? 'disabled' : `onclick="deleteUser(${u.id})"`}>
-                                                            <i data-lucide="trash-2" style="width:14px; height:14px; vertical-align:middle;"></i>
+                                                        <button class="btn-secondary" style="padding:0.4rem; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-color:var(--secondary); color:var(--secondary);" onclick="showChangePasswordModal(${u.id}, '${u.username}')" title="${t("change_pw_title")}">
+                                                            <i data-lucide="key" style="width:14px; height:14px;"></i>
+                                                        </button>
+                                                        <button class="btn-secondary" style="padding:0.4rem; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-color:var(--danger); color:var(--danger); ${isSelf ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isSelf ? 'disabled' : `onclick="deleteUser(${u.id})"`} title="Delete">
+                                                            <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -2218,6 +2353,32 @@ async function renderUsers(container) {
                                     }).join('')}
                                 </tbody>
                             </table>
+                        </div>
+                        
+                        <!-- Pagination Controls -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem 1.5rem; border-top:1px solid var(--border-color); flex-wrap:wrap; gap:1rem; margin-top:1rem;">
+                            <!-- Items Per Page Dropdown -->
+                            <div style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--text-muted);">
+                                <span>${state.lang === 'th' ? 'แสดงข้อมูลต่อหน้า:' : 'Items per page:'}</span>
+                                <select class="input-control" style="width:75px; padding:0.4rem 0.5rem; font-size:0.85rem; height:auto; border-radius:8px; cursor:pointer;" onchange="changeUsersPerPage(this.value)">
+                                    <option value="20" ${usersPerPage === 20 ? 'selected' : ''}>20</option>
+                                    <option value="50" ${usersPerPage === 50 ? 'selected' : ''}>50</option>
+                                    <option value="100" ${usersPerPage === 100 ? 'selected' : ''}>100</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Page Info & Navigation -->
+                            <div style="display:flex; align-items:center; gap:1rem; font-size:0.85rem;">
+                                <span style="color:var(--text-muted);">${state.lang === 'th' ? `หน้า ${usersPage} จาก ${totalPages}` : `Page ${usersPage} of ${totalPages}`}</span>
+                                <div style="display:flex; gap:0.25rem;">
+                                    <button class="btn-qty" style="width:32px; height:32px;" ${usersPage === 1 ? 'disabled' : ''} onclick="changeUsersPage(-1)">
+                                        <i data-lucide="chevron-left" style="width:16px; height:16px;"></i>
+                                    </button>
+                                    <button class="btn-qty" style="width:32px; height:32px;" ${usersPage === totalPages ? 'disabled' : ''} onclick="changeUsersPage(1)">
+                                        <i data-lucide="chevron-right" style="width:16px; height:16px;"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2308,6 +2469,16 @@ async function renderUsers(container) {
             const auditRes = await fetch(`${API_BASE}/audit-logs`);
             const auditLogs = await auditRes.json();
             
+            // Pagination calculations
+            const totalItems = auditLogs.length;
+            const totalPages = Math.ceil(totalItems / auditPerPage) || 1;
+            if (auditPage > totalPages) {
+                auditPage = totalPages;
+            }
+            const startIndex = (auditPage - 1) * auditPerPage;
+            const endIndex = startIndex + auditPerPage;
+            const pageData = auditLogs.slice(startIndex, endIndex);
+            
             container.innerHTML = `
                 <div class="fade-in">
                     <div class="glass-card">
@@ -2329,7 +2500,7 @@ async function renderUsers(container) {
                                 <i data-lucide="clipboard-list" style="width:16px; height:16px; margin-right:0.25rem; vertical-align:middle;"></i> ${t("user_tab_audit")}
                             </button>
                         </div>
-
+                        
                         <div class="table-wrapper">
                             <table class="custom-table">
                                 <thead>
@@ -2341,11 +2512,11 @@ async function renderUsers(container) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${auditLogs.length === 0 ? `
+                                    ${pageData.length === 0 ? `
                                         <tr>
                                             <td colspan="4" style="text-align:center; color:var(--text-muted); padding:2rem;">No audit logs recorded yet.</td>
                                         </tr>
-                                    ` : auditLogs.map(log => `
+                                    ` : pageData.map(log => `
                                         <tr>
                                             <td style="white-space:nowrap; font-size:0.85rem; color:var(--text-muted);">${log.timestamp}</td>
                                             <td style="font-weight:600;">${log.username} ${log.user_id ? `<span style="font-size:0.75rem; color:var(--text-muted);">(ID: ${log.user_id})</span>` : '<span style="font-size:0.75rem; color:var(--text-muted);">(System)</span>'}</td>
@@ -2355,6 +2526,32 @@ async function renderUsers(container) {
                                     `).join('')}
                                 </tbody>
                             </table>
+                        </div>
+                        
+                        <!-- Pagination Controls -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem 1.5rem; border-top:1px solid var(--border-color); flex-wrap:wrap; gap:1rem; margin-top:1rem;">
+                            <!-- Items Per Page Dropdown -->
+                            <div style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--text-muted);">
+                                <span>${state.lang === 'th' ? 'แสดงข้อมูลต่อหน้า:' : 'Items per page:'}</span>
+                                <select class="input-control" style="width:75px; padding:0.4rem 0.5rem; font-size:0.85rem; height:auto; border-radius:8px; cursor:pointer;" onchange="changeAuditPerPage(this.value)">
+                                    <option value="20" ${auditPerPage === 20 ? 'selected' : ''}>20</option>
+                                    <option value="50" ${auditPerPage === 50 ? 'selected' : ''}>50</option>
+                                    <option value="100" ${auditPerPage === 100 ? 'selected' : ''}>100</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Page Info & Navigation -->
+                            <div style="display:flex; align-items:center; gap:1rem; font-size:0.85rem;">
+                                <span style="color:var(--text-muted);">${state.lang === 'th' ? `หน้า ${auditPage} จาก ${totalPages}` : `Page ${auditPage} of ${totalPages}`}</span>
+                                <div style="display:flex; gap:0.25rem;">
+                                    <button class="btn-qty" style="width:32px; height:32px;" ${auditPage === 1 ? 'disabled' : ''} onclick="changeAuditPage(-1)">
+                                        <i data-lucide="chevron-left" style="width:16px; height:16px;"></i>
+                                    </button>
+                                    <button class="btn-qty" style="width:32px; height:32px;" ${auditPage === totalPages ? 'disabled' : ''} onclick="changeAuditPage(1)">
+                                        <i data-lucide="chevron-right" style="width:16px; height:16px;"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3198,8 +3395,8 @@ async function renderReports(container) {
                             datasets: [{
                                 label: t("rep_chart_sales"),
                                 data: sales,
-                                borderColor: "#cda250",
-                                backgroundColor: "rgba(205, 162, 80, 0.1)",
+                                borderColor: "#0052FF",
+                                backgroundColor: "rgba(0, 82, 255, 0.1)",
                                 tension: 0.3,
                                 fill: true,
                                 borderWidth: 3
@@ -3224,7 +3421,7 @@ async function renderReports(container) {
                             labels: labels.length === 0 ? ["No data"] : labels,
                             datasets: [{
                                 data: dataset.length === 0 ? [1] : dataset,
-                                backgroundColor: ["#0d5c50", "#cda250", "#3b82f6", "#ef4444"],
+                                backgroundColor: ["#0B111E", "#0052FF", "#3b82f6", "#ef4444"],
                                 borderWidth: 0
                             }]
                         },
@@ -3241,7 +3438,7 @@ async function renderReports(container) {
                             labels: [t("rep_cust_new"), t("rep_cust_returning")],
                             datasets: [{
                                 data: [data.customers.new.length, data.customers.returning.length],
-                                backgroundColor: ["#0d5c50", "#cda250"],
+                                backgroundColor: ["#0B111E", "#0052FF"],
                                 borderWidth: 0
                             }]
                         },
@@ -3264,7 +3461,7 @@ async function renderReports(container) {
                             labels: labels.length === 0 ? ["No stock"] : labels,
                             datasets: [{
                                 data: dataset.length === 0 ? [1] : dataset,
-                                backgroundColor: ["#0d5c50", "#cda250", "#3b82f6", "#ef4444"],
+                                backgroundColor: ["#0B111E", "#0052FF", "#3b82f6", "#ef4444"],
                                 borderWidth: 0
                             }]
                         },
@@ -3299,7 +3496,7 @@ async function renderReports(container) {
                             labels: labels.length === 0 ? ["No sales"] : labels,
                             datasets: [{
                                 data: dataset.length === 0 ? [1] : dataset,
-                                backgroundColor: ["#0d5c50", "#cda250", "#3b82f6", "#10b981", "#f59e0b"],
+                                backgroundColor: ["#0B111E", "#0052FF", "#3b82f6", "#10b981", "#f59e0b"],
                                 borderWidth: 0
                             }]
                         },
@@ -4693,7 +4890,7 @@ function showReceiptPreviewModal(orderId, date, orderData) {
         <div class="modal-content print-receipt-modal fade-in" style="max-width: 420px; font-family: 'Inter', sans-serif; color:#000; background:#fff; border:none; padding:2rem; box-shadow:none;">
             <!-- Ticket Styling clinical luxury receipt -->
             <div style="text-align:center; border-bottom:2px dashed #ccc; padding-bottom:1.5rem; margin-bottom:1.5rem;">
-                <h3 style="font-family:var(--font-heading); font-weight:800; font-size:1.6rem; color:#0d5c50; margin-bottom:0.25rem;">${shopProfile.name}</h3>
+                <h3 style="font-family:var(--font-heading); font-weight:800; font-size:1.6rem; color:#0B111E; margin-bottom:0.25rem;">${shopProfile.name}</h3>
                 <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#666;">${shopProfile.receiptHeader}</p>
                 <p style="font-size:0.85rem; font-weight:600; margin-top:0.5rem;">${branchName}</p>
                 <p style="font-size:0.75rem; color:#666; margin-top:0.25rem;">Tel: ${shopProfile.phone}</p>
@@ -4745,7 +4942,7 @@ function showReceiptPreviewModal(orderId, date, orderData) {
                         <span style="margin-left:auto;">-${state.cartDiscount.toLocaleString()} ฿</span>
                     </div>
                 ` : ''}
-                <div style="display:flex; justify-content:between; font-size:1.15rem; font-weight:800; border-top:1px solid #eee; padding-top:0.5rem; color:#0d5c50;">
+                <div style="display:flex; justify-content:between; font-size:1.15rem; font-weight:800; border-top:1px solid #eee; padding-top:0.5rem; color:#0B111E;">
                     <span>${t("pos_net")}</span>
                     <span style="margin-left:auto;">${cartNet.toLocaleString()} ฿</span>
                 </div>
@@ -4806,8 +5003,14 @@ function toggleExamCard(id) {
 
 // 8. Global Startup Initializer
 window.addEventListener("DOMContentLoaded", () => {
-    // Check local storage or set initial state
-    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    // Check local storage or set initial state (default to collapsed on mobile)
+    let sidebarCollapsed = localStorage.getItem('sidebarCollapsed');
+    if (sidebarCollapsed === null) {
+        sidebarCollapsed = window.innerWidth <= 1024;
+    } else {
+        sidebarCollapsed = sidebarCollapsed === 'true';
+    }
+    
     if (sidebarCollapsed) {
         const sidebar = document.querySelector('.sidebar');
         if (sidebar) sidebar.classList.add('collapsed');

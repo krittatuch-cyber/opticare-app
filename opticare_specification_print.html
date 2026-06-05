@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>เอกสารข้อกำหนดคุณสมบัติและพิมพ์เขียว - OptiCare</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --primary: #0d5c50;
+            --primary-dark: #073a32;
+            --secondary: #cda250;
+            --text-main: #1f2928;
+            --text-muted: #556663;
+            --border-color: #ddd;
+            --bg-light: #f4f7f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            color: var(--text-main);
+            line-height: 1.6;
+            font-size: 15px;
+            background-color: #fff;
+        }
+
+        /* Page layout for print */
+        @page {
+            size: A4;
+            margin: 20mm 15mm 20mm 15mm;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Cover Page */
+        .cover-page {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px 0;
+            page-break-after: always;
+        }
+
+        .cover-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 20px;
+        }
+
+        .cover-logo-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .cover-title-group {
+            margin-top: 100px;
+            flex-grow: 1;
+        }
+
+        .cover-tag {
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--secondary);
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .cover-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 46px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .cover-subtitle {
+            font-size: 20px;
+            color: var(--text-muted);
+            font-weight: 500;
+            max-width: 600px;
+        }
+
+        .cover-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Headings & Structure */
+        h1, h2, h3, h4 {
+            color: var(--primary-dark);
+            font-weight: 700;
+            page-break-after: avoid;
+        }
+
+        h2 {
+            font-size: 22px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 8px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            font-size: 17px;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* Luxury Callout Boxes */
+        .callout-box {
+            background-color: var(--bg-light);
+            border-left: 4px solid var(--secondary);
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        .callout-box h4 {
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            page-break-inside: avoid;
+        }
+
+        th {
+            background-color: var(--primary-dark);
+            color: #fff;
+            font-weight: 600;
+            padding: 10px 12px;
+            font-size: 13px;
+            text-transform: uppercase;
+            text-align: left;
+            border: 1px solid var(--primary-dark);
+        }
+
+        td {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            font-size: 13.5px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fafcfb;
+        }
+
+        /* Page Breaks & Utilities */
+        .page-break {
+            page-break-before: always;
+        }
+
+        .no-print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--secondary);
+            color: var(--primary-dark);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+        }
+
+        .no-print-btn:hover {
+            transform: translateY(-2px);
+            background-color: #b0873a;
+        }
+
+        @media print {
+            .no-print-btn {
+                display: none;
+            }
+            body {
+                background: #fff;
+            }
+            .cover-page {
+                height: 95vh; /* ensure cover fits cleanly in one page */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Print Action Button (Invisible during print) -->
+    <button class="no-print-btn" onclick="window.print()">🖨️ สั่งพิมพ์เป็น PDF (Print to PDF)</button>
+
+    <div class="container">
+        
+        <!-- COVER PAGE -->
+        <div class="cover-page">
+            <div class="cover-header">
+                <div class="cover-logo-icon">O</div>
+                <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: 1px;">OptiCare</div>
+            </div>
+            
+            <div class="cover-title-group">
+                <span class="cover-tag">Functional Specifications</span>
+                <h1 class="cover-title">OptiCare</h1>
+                <p class="cover-subtitle">เอกสารสรุปข้อกำหนดคุณสมบัติการทำงานและพิมพ์เขียวสถาปัตยกรรมคลาวด์เซิร์ฟเวอร์เลสสำหรับระบบจัดการร้านแว่นตาระดับพรีเมียม</p>
+            </div>
+            
+            <div class="cover-footer">
+                <div>
+                    <p><strong>จัดทำโดย:</strong> ฝ่ายพัฒนาเทคโนโลยี Advanced Agentic Coding</p>
+                    <p><strong>ระบบคลาวด์:</strong> Cloudflare Pages & D1 Database</p>
+                </div>
+                <div style="text-align: right;">
+                    <p><strong>วันที่จัดทำ:</strong> 2 มิถุนายน 2569</p>
+                    <p><strong>สถานะเอกสาร:</strong> สมบูรณ์ (พิมพ์เขียวการใช้งาน)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 1: ARCHITECTURE -->
+        <h2>1. สถาปัตยกรรมระบบ (System Architecture)</h2>
+        <p>ระบบ OptiCare ถูกพัฒนาขึ้นโดยใช้เทคโนโลยีเว็บที่เป็นมาตรฐานและสถาปัตยกรรมแบบ <strong>Dual-Runtime Hybrid Architecture</strong> ซึ่งมีเป้าหมายสูงสุดเพื่อให้ตัวระบบสามารถรันได้อย่างยืดหยุ่น ทั้งบนเครื่องคอมพิวเตอร์แบบออฟไลน์ (Local) และการให้บริการบนคลาวด์เซิร์ฟเวอร์เลสแบบออนไลน์ (Cloud Production)</p>
+        
+        <div class="callout-box">
+            <h4>💡 ความเชื่อมโยงแบบ Single-Codebase</h4>
+            <p>หน้าบ้าน (Frontend Client) ทั้งระบบจะใช้สคริปต์ตัวเดียวกันโดยเชื่อมโยงผ่าน API แบบสัมพัทธ์ (Relative URL) ทำให้สามารถทำงานคู่กับหลังบ้านที่เป็นเครื่องคอมพิวเตอร์ของคุณเอง หรือเชื่อมไปยังหลังบ้าน Serverless ของ Cloudflare ได้ทันทีโดยไม่ต้องแก้ไขหน้าจอ</p>
+        </div>
+
+        <h3>1.1 ส่วนการแสดงผลหน้าบ้าน (Frontend Single Page Application)</h3>
+        <ul>
+            <li><strong>HTML5 & CSS3 (Vanilla)</strong>: ใช้โครงสร้างเว็บหน้าเดียวความเร็วสูง จัดทำระบบสไตล์ด้วย CSS variables แบบ Custom Luxury มอบประสบการณ์ตอบสนองที่ดีเยี่ยม (Responsive Design) รองรับทั้งคอมพิวเตอร์และหน้าจอมือถือ</li>
+            <li><strong>Bilingual Engine (translations.js)</strong>: พจนานุกรมคำแปลจัดแบ่งโครงสร้างอย่างเหมาะสม รองรับสลับภาษาไทย (TH) และภาษาอังกฤษ (EN) บนหน้าจอทั้งหมดในเศษเสี้ยววินาที</li>
+            <li><strong>Analytics & Charts (Chart.js via CDN)</strong>: เรียกใช้งานชุดไลบรารีสถิติยอดนิยม เพื่อใช้วาดกราฟยอดขายแบบตอบสนอง (Interactive Charts) ได้อย่างรวดเร็วและสวยงาม</li>
+        </ul>
+
+        <h3>1.2 ส่วนบริการ API หลังบ้าน (Backend Architectures)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>สภาพแวดล้อม (Runtime)</th>
+                    <th>เครื่องมือ API (Server)</th>
+                    <th>ระบบฐานข้อมูล (Database)</th>
+                    <th>วัตถุประสงค์การใช้งาน</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Local PC (ใช้งานในร้าน)</strong></td>
+                    <td>Python 3.12 + FastAPI</td>
+                    <td>SQLite 3 (ไฟล์เครื่องเดี่ยว)</td>
+                    <td>ทดสอบระบบ หรือใช้งานแบบเครื่องเดียวที่ร้านแบบไม่ต้องใช้อินเทอร์เน็ต</td>
+                </tr>
+                <tr>
+                    <td><strong>Cloudflare (ออนไลน์คลาวด์)</strong></td>
+                    <td>Pages Functions (JS Workers)</td>
+                    <td>Cloudflare D1 (คลาวด์ SQLite)</td>
+                    <td>ใช้งานจริง รองรับพนักงานหลายคนเปิดใช้พร้อมกันจากสาขาต่างๆ ทั่วโลก</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SECTION 2: FUNCTIONAL SPECS -->
+        <div class="page-break"></div>
+        <h2>2. ข้อกำหนดคุณสมบัติเชิงฟังก์ชันการใช้งาน (Functional Specifications)</h2>
+        <p>คุณสมบัติระบบทั้ง 9 หน้าหลักมีขอบเขตการทำงานที่เชื่อมโยงถึงข้อมูลในตู้ฐานข้อมูลเดียวกันอย่างสมบูรณ์แบบ ดังนี้:</p>
+
+        <h3>2.1 หน้า Login (Split-Screen Interface)</h3>
+        <p>การเข้าสู่ระบบถูกออกแบบให้รองรับสไตล์ Clinical Luxury (ด้านซ้ายแสดงภาพคลินิกแว่นตาพรีเมียม ด้านขวาเป็นฟอร์มเข้าสู่ระบบแบบกระจกฝ้า)</p>
+        <ul>
+            <li><strong>สิทธิ์แบบ Role-based Access Control</strong>: ตัวระบบอนุญาตให้ใช้อีเมลและพาสเวิร์ดใดๆ ก็ได้เพื่อผ่านเข้าใช้งาน แต่จะมีการกำหนดสิทธิ์ (Permissions) โดยอัตโนมัติตามรูปแบบอีเมล:</li>
+            <li><strong>Store Manager (Admin)</strong>: อีเมลประกอบด้วยคำว่า <code>admin</code> (เช่น admin@opticare.com) -> เข้าถึงหน้าข้อมูลรายงาน วิเคราะห์การเงิน จัดการ permissions ของพนักงาน และคลังสินค้าได้ทั้งหมด</li>
+            <li><strong>Optometrist (นักทัศนมาตร)</strong>: อีเมลประกอบด้วยคำว่า <code>optom</code> -> เห็นเฉพาะหน้าตารางนัดหมาย ตารางรายชื่อลูกค้า และบันทึกประวัติค่าสายตาคนไข้</li>
+            <li><strong>Receptionist (พนักงานต้อนรับ)</strong>: อีเมลประกอบด้วยคำว่า <code>recep</code> -> ค้นหาประวัติลูกค้า ตารางนัดหมาย ขายสินค้าหน้าร้าน และปรับระดับสินค้าคงคลังได้ แต่ถูกปิดไม่ให้เห็นรายงานการเงินและพนักงาน</li>
+        </ul>
+
+        <h3>2.2 แดชบอร์ดสรุปผล (Dashboard & Real-time Feeds)</h3>
+        <p>หน้าสรุปสถิติผลงานด่วนของสาขาที่กำลังใช้งานอยู่ ประกอบด้วยฟังก์ชันดังนี้:</p>
+        <ul>
+            <li><strong>Stats Widgets</strong>: คำนวณสรุปยอดรายรับรวมสาขา, จำนวนยอดคิวงานแล็บแว่นตาที่ค้างฝนเลนส์ และจำนวนชนิดสินค้าคงเหลือในคลังที่ต่ำกว่าเกณฑ์ขั้นต่ำ</li>
+            <li><strong>Recent Orders & Lab Jobs List</strong>: แสดงตารางสรุปคำสั่งซื้อล่าสุด 5 รายการ (สามารถกดคลิกที่ชื่อลูกค้าเพื่อข้ามไปดูประวัติได้อย่างรวดเร็ว) และตารางแสดงความคืบหน้าของงานฝนเลนส์สายตาที่ต้องดำเนินการส่งมอบ</li>
+            <li><strong>Low Stock warning queue</strong>: แสดงรายการป้ายแจ้งเตือนชื่อสินค้า คิวอาร์โค้ด และจำนวนคงเหลือแบบสดๆ ให้พนักงานฝ่ายจัดซื้อทำงานได้ทันที</li>
+        </ul>
+
+        <h3>2.3 หน้าจัดเก็บลูกค้าและระบบแจ้งเตือนเชิงรุก (Customers Directory)</h3>
+        <p>ระบบรวบรวมรายชื่อลูกค้าพร้อมตัวช่วยอำนวยความสะดวกสำหรับพนักงานต้อนรับ:</p>
+        <ul>
+            <li><strong>การแจ้งเตือนตรวจสายตาประจำปี (Preventive Alerts)</strong>: คำนวณวันหมดอายุของค่าวัดสายตาคนไข้ หากเกิน 1 ปี ระบบจะติดธงแถบแดงและกระดิ่งเตือนทันที</li>
+            <li><strong>Filter Alert</strong>: ปุ่มกรองคัดแยกเพื่อดูเฉพาะลูกค้าที่ "ถึงกำหนดตรวจสายตาเชิงรุก" เพื่อให้ทีมงานสามารถโทรประสานเพื่อสร้างนัดหมายนัดวัดสายตาได้ง่าย</li>
+            <li><strong>ฟอร์มเพิ่มลูกค้าใหม่ (Add Customer Modal)</strong>: บันทึกข้อมูลประวัติเบื้องต้นลงตารางข้อมูลในคลาวด์ D1</li>
+        </ul>
+
+        <div class="page-break"></div>
+        <h3>2.4 ประวัติประวัติสายตา OD/OS (Customer Detailed Profile)</h3>
+        <p>หน้ารวบรวมข้อมูลสายตาที่สำคัญที่สุดของคนไข้แต่ละราย:</p>
+        <ul>
+            <li><strong>Refraction OD/OS History Grid</strong>: แสดงตารางสรุปประวัติสายตาอย่างละเอียดของตาทั้งสองข้าง โดยแยกการดีไซน์อย่างชัดเจนเพื่อป้องกันความผิดพลาด:
+                <ul>
+                    <li><strong>OD (ตาขวา - แถบสีเขียวมรกต)</strong>: บันทึกและแสดงค่า Sphere (สั้น/ยาว), Cylinder (เอียง), Axis (องศาเอียง), ADD (แอดดิชันสำหรับแว่นอ่านหนังสือ) และ VA (ระดับการมองเห็น)</li>
+                    <li><strong>OS (ตาซ้าย - แถบสีทองแชมเปญ)</strong>: บันทึกและแสดงค่า SPH, CYL, AXIS, ADD, และ VA</li>
+                </ul>
+            </li>
+            <li><strong>บันทึกค่าสายตาใหม่ (Log New Exam)</strong>: หน้าต่างฟอร์มรับข้อมูลวัดสายตาล่าสุด เมื่อกดบันทึก จะทำการอัปเดตประวัติการวัดล่าสุด และเลื่อนวันกำหนดตรวจครั้งถัดไปล่วงหน้าไปอีก 365 วัน (1 ปี) ให้โดยอัตโนมัติ</li>
+            <li><strong>Purchase History Logs</strong>: ตารางประวัติช้อปปิ้ง บันทึกค่าใช้จ่าย ยอดมัดจำ และยอดค้างจ่ายทั้งหมดที่ผูกกับชื่อลูกค้าคนดังกล่าว</li>
+        </ul>
+
+        <h3>2.5 สินค้าคงคลังและการปรับระดับแบบเรียลไทม์ (Inventory Management)</h3>
+        <ul>
+            <li><strong>การแบ่งหมวดสินค้า</strong>: แยกปุ่มกดกรองข้อมูลคลังแว่นตาออกเป็น 3 หมวดหมู่ชัดเจน ได้แก่ กรอบแว่นแบรนด์เนม (Frames), เลนส์สายตาแล็บ (Lenses) และคอนแทคเลนส์ (Contact Lenses)</li>
+            <li><strong>ระบบป้ายสต็อกฉุกเฉิน (Low Stock Alert)</strong>: ขึ้นสัญลักษณ์เตือนสินค้าขาดคลัง เพื่อความสะดวกในการตรวจสอบชิ้นส่วน</li>
+            <li><strong>ปรับระดับคลังสินค้า (Adjust Stock)</strong>: กล่องโมดอลให้ผู้มีสิทธิ์ปรับเพิ่ม/ลดตัวเลขสต็อกสินค้าคงเหลือลงฐานข้อมูล D1 ได้โดยตรง</li>
+        </ul>
+
+        <h3>2.6 ระบบจุดขาย มัดจำ และ พิมพ์ใบเสร็จ (POS Engine & Deposits)</h3>
+        <p>ระบบการชำระเงินที่ได้รับการออกแบบมาอย่างยอดเยี่ยมเพื่ออำนวยความสะดวกในกระบวนการหน้าร้านแว่นตา:</p>
+        <ul>
+            <li><strong>ผูกบัญชีคนไข้</strong>: สามารถสืบค้นรายชื่อสมาชิกเพื่อตัดแต้มหรือบันทึกประวัติการสั่งประกอบแว่นตา หรือคลิกเลือกประเภทลูกค้าทั่วไปแบบ Walk-in</li>
+            <li><strong>ระบบบวกราคาตะกร้าและส่วนลดพิเศษ</strong>: คำนวณราคาหักลบด้วยส่วนลดพิเศษ (Discount) ในระดับบาท</li>
+            <li><strong>ระบบการชำระเงินมัดจำ (Deposit down-payment)</strong>: เนื่องจากกรอบแว่นและเลนส์บางคู่ต้องส่งประกอบแล็บ ระบบจึงอนุญาตให้กรอกยอดชำระมัดจำ และระบบจะคำนวณยอดค้างจ่าย (Balance Due) ให้อัตโนมัติ เพื่อคอยเก็บตกเงินส่วนที่เหลือตอนส่งมอบแว่นตา</li>
+            <li><strong>ระบบแบ่งช่องทางชำระเงิน (Split Payment Engine)</strong>: สนับสนุนการชำระเงินมัดจำแบบแยกช่องทาง เช่น "จ่ายเงินสด 500 บาท และแสกนโอนผ่านบัญชีธนาคาร 1,000 บาท" พร้อมระบบตรวจเช็คผลรวมหากพิมพ์จำนวนเงินไม่ครบ</li>
+            <li><strong>พิมพ์ใบเสร็จประกอบแว่น (Receipt Print Mode)</strong>: ป๊อปอัปพรีวิวใบเสร็จความร้อนขนาด 80mm สำหรับสั่งพิมพ์แสดงรายละเอียดบิล ยอดมัดจำ ยอดค้างชำระ และชื่อนักทัศนมาตรที่ทำการวัดสายตา</li>
+        </ul>
+
+        <div class="page-break"></div>
+        <h3>2.7 ตารางการนัดหมายประจำสัปดาห์ (Weekly Calendar & Color-coding)</h3>
+        <p>ปฏิทินแสดงรอบเวลานัดหมายแบบ 7 วันประจำสัปดาห์ที่มีการจัดแบ่งตามระบบสีการนัดพบลูกค้า:</p>
+        <ul>
+            <li><strong>สีเขียวเข้ม (Teal / Emerald)</strong>: นัดหมายวัดการมองเห็น / วัดสายตา (Eye Exam)</li>
+            <li><strong>สีเขียวมรกต (Mint / Emerald)</strong>: นัดหมายส่งมอบแว่นตา / รับแว่นตา (Pick-up)</li>
+            <li><strong>สีน้ำเงินคลิกนิก (Clinic Blue)</strong>: นัดหมายพบปะ / ปรึกษาปัญหาสายตา (Consultation)</li>
+            <li><strong>Add Appointment Modal</strong>: บันทึกจัดตารางเวลานัดหมายกับลูกค้าลงคลาวด์ D1</li>
+        </ul>
+
+        <h3>2.8 การคุมสิทธิ์พนักงาน (Staff Permissions Matrix)</h3>
+        <p>ระบบแสดงบุคลากรและแถบกำหนดสิทธิ์เข้าใช้เมนูระบบโดยตรง:</p>
+        <ul>
+            <li><strong>การปรับเปลี่ยนบทบาท</strong>: เปลี่ยน Role พนักงานได้เรียลไทม์ (Admin, Optometrist, Receptionist)</li>
+            <li><strong>สลับสิทธิ์การเข้าถึงเมนู</strong>: ปลดล็อกหรือปิดล็อกสิทธิ์ในแต่ละแท็บเมนูพนักงานแบบรายบุคคลได้อย่างอิสระ</li>
+        </ul>
+
+        <h3>2.9 รายงานวิเคราะห์ผลงานสาขาเชิงธุรกิจ (Reports Analytics & Charts)</h3>
+        <p>ระบบนำเข้ายอดการทำธุรกรรม POS และยอดมัดจำทั้งหมดจากฐานข้อมูลจริง มาประมวลผลวาดเป็นกราฟวิเคราะห์เชิงลึก:</p>
+        <ul>
+            <li><strong>7-Day Combined Income (Line Chart)</strong>: กราฟเส้นแสดงแนวโน้มรายรับรวมรายวันย้อนหลัง 7 วัน สำหรับใช้วิเคราะห์เงินหมุนเวียน</li>
+            <li><strong>Sales Breakdown (Doughnut Chart)</strong>: กราฟวงกลมแยกหมวดความนิยมของประเภทสินค้าแว่นตา (กรอบ / เลนส์ / คอนแทค)</li>
+            <li><strong>Branch Revenue Comparison (Bar Chart)</strong>: กราฟแท่งเปรียบเทียบยอดขายรวมจริงของแต่ละสาขาในเครือร้านแว่น</li>
+        </ul>
+
+        <!-- SECTION 3: EXPANSION BLUEPRINT -->
+        <h2>3. พิมพ์เขียวสำหรับการพัฒนาและต่อยอดระบบในอนาคต</h2>
+        <p>สำหรับนักพัฒนาที่สนใจนำโครงสร้างระบบ OptiCare ไปขยายฟังก์ชันหรือต่อยอดขีดความสามารถ แนะนำจุดตั้งต้นสำคัญดังนี้:</p>
+
+        <h3>3.1 โครงสร้างตารางและ SQL คิวรี (D1 SQL schema)</h3>
+        <p>โครงสร้างฐานข้อมูล SQLite คลาวด์ถูกรวมไว้ที่ไฟล์ <strong><code>schema.sql</code></strong> ซึ่งเป็นสคริปต์แบบอนุกรมดั้งเดิม ทำให้ผู้พัฒนาสามารถเพิ่มเติมตาราง เช่น ตารางเก็บบันทึกข้อมูลคูปองส่วนลดสมาชิก (Coupons) หรือตารางค่าสายตาเฉพาะรูปแบบเลนส์โปรเกรสซีฟได้อย่างง่ายดายผ่านการรันใน Cloudflare D1 SQL Console</p>
+
+        <h3>3.2 โครงสร้างบริการ API (functions/api/[[path]].js)</h3>
+        <p>เซิร์ฟเวอร์เลส API บน Cloudflare ถูกออกแบบไว้ในรูปของ <strong>Single-file REST API Router</strong> ซึ่งรับคำขอยิงแบบสัมพัทธ์ (Relative URL) ตัวระบบจัดการการคิวรีข้อมูล D1 ด้วยโครงสร้าง JavaScript Promises ที่มีความเร็วสูง นักพัฒนาสามารถขยาย API ไปยังระบบภายนอกได้ง่าย เช่น การยิงข้อมูลหลังชำระเงิน POS หรือส่งประวัติวัดสายตาไปยัง <strong>LINE Notify API</strong> เพื่อแจ้งเตือนคนไข้ผ่านไลน์ส่วนตัวได้ด้วยโค้ด JavaScript เพียงไม่กี่บรรทัด</p>
+
+        <h3>3.3 การจัดแต่งสไตล์โครงสร้าง CSS (style.css)</h3>
+        <p>ชุดจัดระเบียบสไตล์ทั้งหมดถูกคุมด้วย <strong>CSS Variables</strong> ที่มีศูนย์กลางอยู่ที่ต้นไฟล์ <code>:root</code> และ <code>body.dark-theme</code> หากทางร้านแว่นตาต้องการรีแบรนด์สีสัน (เช่น เปลี่ยนจากโทนมรกต-ทองหรูหรา ไปเป็นสีดำลึกลับและขอบทองคำเงาวับ) นักพัฒนาเพียงแก้รหัสค่าสีที่ต้นไฟล์เพียงจุดเดียว สีในทุกหน้าของระบบจะผันตามอัตโนมัติอย่างสวยงาม</p>
+
+    </div>
+
+</body>
+</html>
