@@ -1,0 +1,8 @@
+name = "opticare-app"
+pages_build_output_dir = "."
+compatibility_date = "2026-06-05"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "opticare-db"
+database_id = "1987619f-bd98-40ee-9ae1-02599dbd28b3"
